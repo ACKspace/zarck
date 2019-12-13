@@ -1,0 +1,103 @@
+<html>
+<head>
+<style>
+@font-face {
+  font-family: "MorePerfectDOSVGA";
+  src: url("MorePerfectDOSVGA.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+}
+
+.term
+{
+    white-space: pre;
+}
+
+body, input, span
+{
+    background: #222;
+    color: #AAA;
+    font-family: 'MorePerfectDOSVGA';
+    font-size: 2.15vw;
+    display: inline-block;
+    padding: 0 10px;
+    border: none;    
+}
+
+.input
+{
+    border-right: 1vw solid transparent;
+    outline: none;
+    padding: 0;
+    caret-color: transparent;
+}
+
+.input:focus
+{
+    animation: PulseAttention 1.5s cubic-bezier(.215, .61, .355, 1) forwards infinite;
+}
+
+@keyframes PulseAttention {
+    50% {
+        border-color: currentColor;
+    }
+}
+
+</style>
+</head>
+<body>
+<!--
+source ~/Projects/emsdk/emsdk_env.sh
+
+emcc -o zarck.html vanalles.c world.c main.c -O3 -s WASM=1 --shell-file template.html -s NO_EXIT_RUNTIME=1  -s "EXTRA_EXPORTED_RUNTIME_METHODS=['ccall']" --emrun
+
+emrun zarck.html
+-->
+
+<script async type="text/javascript" src="zarck.js"></script>
+<script>
+var Module = { "print": ( d ) =>
+    {
+        document.querySelector(".term").innerHTML += d + "<br>";
+        document.querySelector( ".input" ).scrollIntoView();
+    }
+};
+
+window.addEventListener( "click", ()=>
+{
+    document.querySelector( ".input" ).focus();
+    document.querySelector( ".input" ).click();
+} );
+
+window.addEventListener( "load", ( e ) =>
+{
+    var input = document.querySelector( ".input" );
+
+    input.focus();
+    input.click();
+    input.addEventListener( "keypress", ( e ) =>
+    {
+        if ( e.key === "Enter" )
+        {
+            document.querySelector(".term").innerHTML += input.textContent + "<br>"
+            Module.ccall( "command", null, ["string"], [input.textContent] );
+            input.textContent = "";
+            e.preventDefault();
+        }
+    } );
+
+} );
+
+</script>
+
+<div class="term">
+C:\ZARCK>zarck.exe<br><br>
+</div>
+<span class="input" contenteditable="true" tabindex="0"></span>
+</body>
+</html>
+
+
+
+
+
