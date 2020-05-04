@@ -9,6 +9,7 @@
 */
 
 #define DONT_SHIT_YOUR_PANTS
+#define MUD
 
 #ifdef __EMSCRIPTEN__
 #include "emscripten.h"
@@ -93,6 +94,26 @@ void EMSCRIPTEN_KEEPALIVE command(char *temp)
 {
     do_command(temp);
 }
+
+#ifdef MUD
+int* EMSCRIPTEN_KEEPALIVE mudata( int* _arr, int _len )
+{
+    if ( _len < 7 )
+        return _arr;
+
+    // int[7]: current, N, S, E, W, U, D: 0 is non-existant
+    _arr[ 0 ] = curloc;
+    _arr[ 1 ] = locs[curloc].north;
+    _arr[ 2 ] = locs[curloc].south;
+    _arr[ 3 ] = locs[curloc].east;
+    _arr[ 4 ] = locs[curloc].west;
+    _arr[ 5 ] = locs[curloc].up;
+    _arr[ 6 ] = locs[curloc].down;
+
+    return _arr;
+}
+#endif
+
 #endif
 
 int do_command(char *cmd)
@@ -114,7 +135,13 @@ int do_command(char *cmd)
   parm2 = trim(ourtemp2);
   parm3 = trim(ourtemp3);
 
-  if (emptystring(xtemp)) goto end_command;
+  if (emptystring(xtemp))
+    goto end_command;
+
+#ifdef MUD
+  if ( strcmp(xtemp, "SAY") == 0 )
+    goto end_command;
+#endif
 
   if ( strcmp(xtemp, "LOOK") == 0 || strcmp(xtemp, "L") == 0 || strcmp(xtemp, "READ") == 0 )
   {

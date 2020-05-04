@@ -63,6 +63,10 @@ var Module = { "print": ( d ) =>
     }
 };
 
+var mudata = new Int32Array( 7 );
+//var id = Math.random() * (2**30) | 0;
+var message = null;
+
 window.addEventListener( "click", ()=>
 {
     document.querySelector( ".input" ).focus();
@@ -75,12 +79,63 @@ window.addEventListener( "load", ( e ) =>
 
     input.focus();
     input.click();
+
+    // set initial mudata
+    setTimeout( ( e ) =>
+    {
+
+        try
+        {
+            var ptr = Module.ccall( "mudata", "array", [ "array", "int" ], [ mudata, mudata.length ] ) / mudata.BYTES_PER_ELEMENT;
+            mudata = HEAPU32.subarray( ptr, ptr + mudata.length );
+
+            // Set request timer
+            setInterval( ( e ) =>
+            {
+                var postData = Array.from( mudata );
+                if ( message )
+                {
+                    postData.push( message );
+                    message = null;
+                }
+
+                var data = new URLSearchParams();
+                data.append( "json", JSON.stringify( postData ) );
+
+                fetch( "mudata.php", {
+                    method: 'POST',
+                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                    body: data
+                } ).then( _response =>
+                {
+                    return _response.json();
+                } ).then( _data =>
+                {
+                    _data.forEach( (s) => Module.print(s) );
+                } );
+
+            }, 1500 )
+        }
+        catch ( _e )
+        {
+            console.log( "no mudata" )
+        }
+    }, 500 );
+
     input.addEventListener( "keypress", ( e ) =>
     {
         if ( e.key === "Enter" )
         {
             document.querySelector(".term").innerHTML += input.textContent + "<br>"
             Module.ccall( "command", null, ["string"], [input.textContent] );
+
+            // update mudata
+            var ptr = Module.ccall( "mudata", "array", [ "array", "int" ], [ mudata, mudata.length ] ) / mudata.BYTES_PER_ELEMENT;
+            mudata = HEAPU32.subarray( ptr, ptr + mudata.length )
+
+            if ( input.textContent.toUpperCase().startsWith( "SAY " ) )
+                message = input.textContent.substr( 4 );
+
             input.textContent = "";
             e.preventDefault();
         }

@@ -1985,6 +1985,10 @@ var _command = Module["_command"] = function() {
   return Module["asm"]["command"].apply(null, arguments)
 };
 
+var _mudata = Module["_mudata"] = function() {
+  return Module["asm"]["mudata"].apply(null, arguments)
+};
+
 var _main = Module["_main"] = function() {
   return Module["asm"]["main"].apply(null, arguments)
 };
